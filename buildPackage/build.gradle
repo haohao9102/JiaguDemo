@@ -177,7 +177,7 @@ task zipChannel(type: Zip, dependsOn: walleApk) {
 task gotoProduct(dependsOn: zipChannel) {
 }
 
-task _gotoProduct(dependsOn: zipChannel) {
+task _jiagu(dependsOn: zipChannel) {
 }
 
 login.doFirst {

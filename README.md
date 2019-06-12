@@ -7,7 +7,7 @@
 
 https://pan.baidu.com/s/1EtKLhFXyyD_iHUiuGIUBIA  提取码: mxph 
 
-![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/png/jiagu1.png)
+![](https://github.com/haohao9102/JiaguDemo/blob/master/screenshot/buildPackage%E7%9B%AE%E5%BD%95.png)
 
 下载只有的`buildPackage`文件夹, 尽量放在`工程的根目录`.
 
@@ -21,14 +21,14 @@ https://pan.baidu.com/s/1EtKLhFXyyD_iHUiuGIUBIA  提取码: mxph
 ```java
 apply from: rootProject.projectDir.absolutePath + '/buildPackage/build.gradle'
 ```
-![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/png/jiagu3.png)
+![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/screenshot/apply.png)
 
 > 请关注图中, 第一行即可.
 
 ## 执行加固
 同步(sync)项目之后, 
 
-![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/png/jiagu2.png)
+![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/screenshot/_jiagu.png)
 
 `Tasks`任务列表, 会多出`_jiagu` , 双击即可.
 
@@ -42,7 +42,7 @@ apply from: rootProject.projectDir.absolutePath + '/buildPackage/build.gradle'
 
 >如果不指定加固文件路径,你至少需要使用`release`的方式打包过一次.脚本才能自己识别到文件路径.
 
-![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/png/jiagu4.png)
+![](https://raw.githubusercontent.com/angcyo/_360jiagu/master/screenshot/client.png)
 
 # 输出路径
 请注意控制台的输出.
