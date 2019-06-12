@@ -1,0 +1,63 @@
+ext.mainApp = true //标记为主app module
+apply from: rootProject.file('cc-settings-2.gradle')
+apply from: rootProject.projectDir.absolutePath + '/buildPackage/build.gradle'
+
+android {
+
+    ext.myStoreFile = file('../com.jks')
+    ext.myStorePassword = '123456'
+    ext.myKeyAlias = 'demo'
+    ext.myKeyPassword = '123456'
+
+    signingConfigs {
+        debug{
+            keyAlias myKeyAlias
+            keyPassword myKeyPassword
+            storeFile myStoreFile
+            storePassword myStorePassword
+        }
+        release {
+            keyAlias myKeyAlias
+            keyPassword myKeyPassword
+            storeFile myStoreFile
+            storePassword myStorePassword
+        }
+    }
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.example.chenhao.componentdemo"
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug {
+            buildConfigField "String", "BASE_URL", "\"http://www.baidu.com\""
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+        release {
+            buildConfigField "String", "BASE_URL", "\"http://www.tencent.com\""
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    addComponent 'conponent_1', project(':conponent_1')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+repositories {
+    mavenCentral()
+}

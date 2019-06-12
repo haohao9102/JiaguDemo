@@ -1,0 +1,266 @@
+//需要关注的配置
+//360加固 账号和密码; (必须)
+def userName = '18802006574'
+def password = '1qaz@WSX'
+
+//渠道文件信息路径; (必须)
+def channelList = 'walle/channel.txt'
+
+//需要加固的APK路径, 如果不存在任务中断执行, 为空:自动根据Gradle配置获取路径 (可选)
+def targetApkPath = ''
+
+//渠道分包后的APK文件名,为空:自动从Gradle脚本中获取 (可选)
+def tmpApk = ''//'app_release_temp.apk'
+
+//最终生成zip包的文件名 (可选)
+def date = new Date().format('yyyyMMdd')
+def version = 'V' + rootProject.getVersion()
+
+def zipFileName = "小数定位_${version}_渠道包_${date}.zip"
+
+//签名文件配置, 使用空字符, 会自动赋值. (可选)
+//def keystorePath = '../app/keystores/android.keystore'
+//def keystorePwd = 'psrecycle123'
+//def keystoreAlias = 'psrecycle'
+//def keystoreAliasPwd = 'psrecycle123'
+
+def keystorePath = ''
+def keystorePwd = ''
+def keystoreAlias = ''
+def keystoreAliasPwd = ''
+//end
+
+//基本配置, 所有相对路径, 都将基于此目录
+def baseBuildPath = '../buildPackage/'
+
+//最后将渠道包打成zip压缩包
+def zipPath = '/output/zip'
+
+//360加固宝配置
+def jiagu360Path = baseBuildPath + 'jiagu/jiagu.jar'
+
+def jiaguOutput = 'output/jiagu'
+def wallePath = 'output/walle'
+
+//walle打包配置
+def walleJarPath = baseBuildPath + 'walle/walle-cli-all.jar'
+
+//中间文件目录
+def tmpPath = baseBuildPath + '/output/tmp'
+
+//获取apk路径和文件名称
+project.afterEvaluate {
+    tasks.getByName("packageRelease") {
+
+        if (keystorePath == '') {
+            //自动读取签名配置
+            def map = readSigning()
+
+            keystorePath = map.get("sf")
+            keystorePwd = map.get("sp")
+            keystoreAlias = map.get("ka")
+            keystoreAliasPwd = map.get("kp")
+
+            List<String> list = new ArrayList<>()
+            list.add('-importsign')
+            list.add(keystorePath)
+            list.add(keystorePwd)
+            list.add(keystoreAlias)
+            list.add(keystoreAliasPwd)
+            setKeystore.setArgs(list)
+        }
+
+        it.configure {
+            def inputPath = ""
+            if (it.hasProperty("outputDirectory")) {
+                inputPath = it.outputDirectory.getAbsolutePath()
+                //println(it.outputDirectory.getClass().getName())
+            }
+            def inputApkFile = ""
+            it.outputScope.apkDatas.forEach {
+                apkData ->
+                    inputApkFile = apkData.outputFileName
+                    //println(apkData.outputFileName.getClass().getName())
+            }
+
+            if (targetApkPath == '') {
+                targetApkPath = inputPath + File.separator + inputApkFile
+            }
+            if (tmpApk == '') {
+                tmpApk = inputApkFile
+            }
+
+            //重命名task
+            copyTmpApk.rename('(.+)', tmpApk)
+
+            //重置加固task参数
+            List<String> list = new ArrayList<>()
+            list.add('-jiagu')
+            list.add(targetApkPath)
+            list.add(jiaguOutput)
+            list.add('-autosign')
+            jiagu360.setArgs(list)
+
+            //重置walle task参数
+            list = new ArrayList<>()
+            list.add('batch')
+            list.add('-f')
+            list.add(baseBuildPath + channelList)
+            list.add(tmpPath + File.separator + tmpApk)
+            list.add(wallePath)
+            walleApk.setArgs(list)
+        }
+    }
+}
+
+//进行登录
+task login(type: JavaExec) {
+    workingDir(baseBuildPath)
+    classpath(files(jiagu360Path))
+    main('com.qihoo.jiagu.CmdMain')
+    args('-login', userName, password)
+}
+
+//设置签名配置
+task setKeystore(type: JavaExec, dependsOn: login) {
+    workingDir(baseBuildPath)
+    classpath(files(jiagu360Path))
+    main('com.qihoo.jiagu.CmdMain')
+    args('-importsign',
+            keystorePath,
+            keystorePwd,
+            keystoreAlias,
+            keystoreAliasPwd)
+}
+
+//进行加固
+task jiagu360(type: JavaExec, dependsOn: setKeystore) {
+    workingDir(baseBuildPath)
+    classpath(files(jiagu360Path))
+    main('com.qihoo.jiagu.CmdMain')
+    //动态设置args
+//    args('-jiagu',
+//            tmpInputPath + File.separator + tmpInputApkFile,
+//            jiaguOutput,
+//            '-autosign')
+}
+
+//加固后的包保留,拷贝一份在tmp里面玩
+task copyTmpApk(type: Copy, dependsOn: jiagu360) {
+    //workingDir(baseBuildPath)
+    from(baseBuildPath + File.separator + jiaguOutput)
+    include('*_jiagu_sign.apk')
+    into(tmpPath)
+    //名余曰正则兮，字余曰灵均, 动态执行
+    //rename('(.+)', tmpApk)
+}
+
+//瓦力打包
+task walleApk(type: JavaExec, dependsOn: copyTmpApk) {
+    workingDir(baseBuildPath)
+    classpath(files(walleJarPath))
+    main('com.meituan.android.walle.Main')
+    //动态设置args
+//    args('batch', '-f',
+//            baseBuildPath + channelList,
+//            tmpPath + File.separator + tmpApk,
+//            wallePath)
+}
+
+task zipChannel(type: Zip, dependsOn: walleApk) {
+    //workingDir(baseBuildPath)
+    from(baseBuildPath + File.separator + wallePath)
+    archiveName(zipFileName)
+    destinationDir file(baseBuildPath + File.separator + zipPath)
+}
+
+task gotoProduct(dependsOn: zipChannel) {
+}
+
+task _gotoProduct(dependsOn: zipChannel) {
+}
+
+login.doFirst {
+    File targetFile = new File(targetApkPath)
+    if (!targetFile.exists()) {
+        throw new RuntimeException("加固文件不存在:" + targetApkPath)
+    } else {
+        println("开始加固:" + targetApkPath)
+        println("输出zip路径:" + file(baseBuildPath + File.separator + zipPath).getAbsolutePath())
+    }
+    //创建基础文件夹
+    createFolder(baseBuildPath + File.separator + wallePath, true)
+    createFolder(baseBuildPath + File.separator + zipPath)
+    createFolder(baseBuildPath + File.separator + jiaguOutput, true)
+    createFolder(baseBuildPath + File.separator + tmpPath, true)
+}
+
+def createFolder(String path, boolean clear = false) {
+    File folder = file(path)
+    if (folder.exists()) {
+        if (clear) {
+            clearFolder(path)
+        }
+    } else {
+        folder.mkdirs()
+    }
+}
+
+def clearFolder(String path) {
+    File folder = file(path)
+    for (File f : folder.listFiles()) {
+        if (f.isDirectory()) {
+            clearFolder(f.getAbsolutePath())
+        } else if (f.isFile()) {
+            f.delete()
+        }
+    }
+}
+
+def readSigning() {
+    def application = "com.android.application"
+    def applicationPlugin = project.plugins.findPlugin(application)
+    //applicationPlugin.extension
+    //println "插件:" + applicationPlugin
+    //println applicationPlugin.extension.signingConfigs[0]
+    def signingConfigs = applicationPlugin.extension.signingConfigs
+
+    def signingMap = new HashMap<String, String>()
+
+    if (signingConfigs.size() > 0) {
+        def builder = new StringBuilder()
+        builder.append("找到签名配置" + signingConfigs.size() + "个\n")
+        signingConfigs.each {
+            builder.append("name:")
+            builder.append(it.name)
+            builder.append("\n")
+
+            builder.append("mStoreFile:")
+            builder.append(it.storeFile)
+            builder.append("\n")
+
+            builder.append("mStorePassword:")
+            builder.append(it.storePassword)
+            builder.append("\n")
+
+            builder.append("mKeyAlias:")
+            builder.append(it.keyAlias)
+            builder.append("\n")
+
+            builder.append("mKeyPassword:")
+            builder.append(it.keyPassword)
+            builder.append("\n")
+            builder.append("\n")
+
+            signingMap.put("sf", it.storeFile)
+            signingMap.put("sp", it.storePassword)
+            signingMap.put("kp", it.keyPassword)
+            signingMap.put("ka", it.keyAlias)
+        }
+        println builder
+    } else {
+        println "未找到签名配置信息"
+    }
+
+    return signingMap
+}
