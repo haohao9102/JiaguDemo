@@ -67,7 +67,7 @@ java -jar jiagu.jar -importsign<keystore_path><keystore_password><alias><alias_p
 [命令行使用参考官方文档](http://jiagu.360.cn/#/global/help/164)
 
 
-##2.
+## 2.
 这个项目采用的是组件化开发模式，如conponent_1就是一个组件，可单独编译打包。
 组件化采用的是框架是[CC框架](https://github.com/luckybilly/CC),有兴趣的童靴欢迎star一波
 
