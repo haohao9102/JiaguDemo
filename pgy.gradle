@@ -1,0 +1,42 @@
+//可以指定相对路径
+def app1OfflineFile = "${projectDir.absolutePath}/build/outputs/apk/release/"
+
+private def uploadPGY(String filePath) {
+    println "uploadPGY filePath：" + filePath
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        executable = 'curl'
+        args = ['-F', "file=@${filePath}", '-F', "_api_key=${rootProject.ext.pgy["apiKey"]}", rootProject.ext.pgy["uploadUrl"]]
+        standardOutput = stdout
+    }
+    String output = stdout.toString()
+    def parsedJson = new groovy.json.JsonSlurper().parseText(output)
+    println parsedJson.data.buildQRCodeURL
+    println "版本号：" + parsedJson.data.buildVersion
+}
+
+
+task uploadApp() {
+    group = "publish"
+
+    doLast {
+        File dir = new File(app1OfflineFile)
+        if (!dir.exists()) {
+            println "Alpha dir not exists：" + dir.path
+            return
+        }
+        File[] files = dir.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File file) {
+                return file.isFile() && file.name.endsWith(".apk")
+            }
+        })
+        if (files == null || files.size() == 0) {
+            println "files == null ||  files.size() == 0"
+            return
+        }
+        File apkFile = files[0]
+
+        uploadPGY(apkFile.path)
+    }
+}

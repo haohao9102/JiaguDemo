@@ -1,6 +1,7 @@
 ext.mainApp = true //标记为主app module
 apply from: rootProject.file('cc-settings-2.gradle')
 apply from: rootProject.projectDir.absolutePath + '/buildPackage/build.gradle'
+apply from: '../pgy.gradle'
 
 android {
 
@@ -10,7 +11,7 @@ android {
     ext.myKeyPassword = '123456'
 
     signingConfigs {
-        debug{
+        debug {
             keyAlias myKeyAlias
             keyPassword myKeyPassword
             storeFile myStoreFile
@@ -28,8 +29,8 @@ android {
         applicationId "com.example.chenhao.componentdemo"
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

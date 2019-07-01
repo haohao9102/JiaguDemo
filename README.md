@@ -1,5 +1,5 @@
 # _jiagu
-[AS--›Gradle 360加固和Walle渠道打包](https://www.jianshu.com/p/445b2ac8dd92)
+[AS--›Gradle 360加固和Walle渠道打包，自动上传蒲公英](https://www.jianshu.com/p/445b2ac8dd92)
 
 # 使用方式
 
@@ -18,7 +18,7 @@ https://pan.baidu.com/s/1EtKLhFXyyD_iHUiuGIUBIA  提取码: mxph
 
 ## 引入
 在`APP Module`中, 加入
-```java
+```
 apply from: rootProject.projectDir.absolutePath + '/buildPackage/build.gradle'
 ```
 ![](https://github.com/haohao9102/JiaguDemo/blob/master/screenshot/apply.png)
@@ -70,4 +70,18 @@ java -jar jiagu.jar -importsign<keystore_path><keystore_password><alias><alias_p
 ## 2.
 这个项目采用的是组件化开发模式，如conponent_1就是一个组件，可单独编译打包。
 组件化采用的是框架是[CC框架](https://github.com/luckybilly/CC),有兴趣的童靴欢迎star一波
+
+
+# update
+新增上传apk至蒲公英功能
+## 1.单独引用
+pgy.gadle在APP目录下的build.gradle引用，执行uploadApp task
+```
+//单独执行蒲公英上传的任务
+apply from: '../pgy.gradle'
+```
+
+## 2.一键加固打包、多渠道、上传蒲公英
+执行_jiagu task 即可
+
 

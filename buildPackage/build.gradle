@@ -23,7 +23,6 @@ def zipFileName = "小数定位_${version}_渠道包_${date}.zip"
 //def keystorePwd = 'psrecycle123'
 //def keystoreAlias = 'psrecycle'
 //def keystoreAliasPwd = 'psrecycle123'
-
 def keystorePath = ''
 def keystorePwd = ''
 def keystoreAlias = ''
@@ -47,6 +46,9 @@ def walleJarPath = baseBuildPath + 'walle/walle-cli-all.jar'
 
 //中间文件目录
 def tmpPath = baseBuildPath + '/output/tmp'
+
+//上传至蒲公英Apk的路径
+def appUploadFile = baseBuildPath + jiaguOutput
 
 //获取apk路径和文件名称
 project.afterEvaluate {
@@ -173,11 +175,35 @@ task zipChannel(type: Zip, dependsOn: walleApk) {
     archiveName(zipFileName)
     destinationDir file(baseBuildPath + File.separator + zipPath)
 }
+//上传加固app至蒲公英
+task _uploadApp(dependsOn: zipChannel) {
+    group = "publish"
 
+    doLast {
+        File dir = new File(appUploadFile)
+        if (!dir.exists()) {
+            println "Alpha dir not exists：" + dir.path
+            return
+        }
+        File[] files = dir.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File file) {
+                return file.isFile() && file.name.endsWith(".apk")
+            }
+        })
+        if (files == null || files.size() == 0) {
+            println "files == null ||  files.size() == 0"
+            return
+        }
+        File apkFile = files[0]
+
+        uploadPGY(apkFile.path)
+    }
+}
 task gotoProduct(dependsOn: zipChannel) {
 }
 
-task _jiagu(dependsOn: zipChannel) {
+task _jiagu(dependsOn: _uploadApp) {
 }
 
 login.doFirst {
@@ -264,3 +290,18 @@ def readSigning() {
 
     return signingMap
 }
+
+private def uploadPGY(String filePath) {
+    println "uploadPGY filePath：" + filePath
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        executable = 'curl'
+        args = ['-F', "file=@${filePath}", '-F', "_api_key=${rootProject.ext.pgy["apiKey"]}", rootProject.ext.pgy["uploadUrl"]]
+        standardOutput = stdout
+    }
+    String output = stdout.toString()
+    def parsedJson = new groovy.json.JsonSlurper().parseText(output)
+    println parsedJson.data.buildQRCodeURL
+    println "版本号：" + parsedJson.data.buildVersion
+}
+
