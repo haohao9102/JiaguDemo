@@ -48,7 +48,7 @@ def walleJarPath = baseBuildPath + 'walle/walle-cli-all.jar'
 def tmpPath = baseBuildPath + '/output/tmp'
 
 //上传至蒲公英Apk的路径
-def appUploadFile = baseBuildPath + jiaguOutput
+def appUploadFile = rootProject.getProjectDir().path + '/buildPackage/' + jiaguOutput
 
 //获取apk路径和文件名称
 project.afterEvaluate {
