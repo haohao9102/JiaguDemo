@@ -2,7 +2,7 @@
 ext {
 
     //蒲公英配置
-    pgy = [apiKey   : "934c5d94651689c9bc6efeb31517d73f",
+    pgy = [apiKey   : "xxxxxxxxxxxxxxxxxxxxxxxxx",
            uploadUrl: "https://www.pgyer.com/apiv2/app/upload"]
 
     //360加固配置
